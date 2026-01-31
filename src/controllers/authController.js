@@ -18,23 +18,34 @@ const signup = async (req, res) => {
       });
     }
 
-    const { name, email, password, phone } = req.body;
+    const { fullName, email, studentId, password } = req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const existingUser = await User.findOne({ 
+      $or: [
+        { email: email.toLowerCase() },
+        { studentId: studentId.toUpperCase() }
+      ]
+    });
     if (existingUser) {
+      if (existingUser.email === email.toLowerCase()) {
+        return res.status(400).json({
+          success: false,
+          message: 'An account with this email already exists'
+        });
+      }
       return res.status(400).json({
         success: false,
-        message: 'An account with this email already exists'
+        message: 'An account with this student ID already exists'
       });
     }
 
     // Create new user
     const user = await User.create({
-      name,
+      fullName,
       email: email.toLowerCase(),
-      password,
-      phone
+      studentId: studentId.toUpperCase(),
+      password
     });
 
     // Generate tokens

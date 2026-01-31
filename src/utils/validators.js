@@ -4,12 +4,12 @@ const { body } = require('express-validator');
  * Validation rules for user signup
  */
 const signupValidation = [
-  body('name')
+  body('fullName')
     .trim()
     .notEmpty()
-    .withMessage('Name is required')
-    .isLength({ min: 2, max: 50 })
-    .withMessage('Name must be between 2 and 50 characters'),
+    .withMessage('Full name is required')
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Full name must be between 2 and 100 characters'),
 
   body('email')
     .trim()
@@ -19,19 +19,20 @@ const signupValidation = [
     .withMessage('Please provide a valid email')
     .normalizeEmail(),
 
+  body('studentId')
+    .trim()
+    .notEmpty()
+    .withMessage('Student ID is required')
+    .isLength({ min: 3, max: 30 })
+    .withMessage('Student ID must be between 3 and 30 characters'),
+
   body('password')
     .notEmpty()
     .withMessage('Password is required')
     .isLength({ min: 6 })
     .withMessage('Password must be at least 6 characters')
     .matches(/\d/)
-    .withMessage('Password must contain at least one number'),
-
-  body('phone')
-    .optional()
-    .trim()
-    .isMobilePhone()
-    .withMessage('Please provide a valid phone number')
+    .withMessage('Password must contain at least one number')
 ];
 
 /**

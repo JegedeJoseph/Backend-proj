@@ -20,9 +20,9 @@ const getProfile = async (req, res) => {
       success: true,
       data: {
         id: user._id,
-        name: user.name,
+        fullName: user.fullName,
         email: user.email,
-        phone: user.phone,
+        studentId: user.studentId,
         university: user.university,
         department: user.department,
         level: user.level,
@@ -48,7 +48,7 @@ const getProfile = async (req, res) => {
  */
 const updateProfile = async (req, res) => {
   try {
-    const { name, phone, university, department, level, avatarUrl } = req.body;
+    const { fullName, university, department, level, avatarUrl } = req.body;
 
     const user = await User.findById(req.user.id);
 
@@ -60,8 +60,7 @@ const updateProfile = async (req, res) => {
     }
 
     // Update fields
-    if (name) user.name = name;
-    if (phone !== undefined) user.phone = phone;
+    if (fullName) user.fullName = fullName;
     if (university !== undefined) user.university = university;
     if (department !== undefined) user.department = department;
     if (level !== undefined) user.level = level;
@@ -74,9 +73,9 @@ const updateProfile = async (req, res) => {
       message: 'Profile updated successfully',
       data: {
         id: user._id,
-        name: user.name,
+        fullName: user.fullName,
         email: user.email,
-        phone: user.phone,
+        studentId: user.studentId,
         university: user.university,
         department: user.department,
         level: user.level,

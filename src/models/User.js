@@ -5,11 +5,11 @@ const config = require('../config');
 
 const userSchema = new mongoose.Schema(
   {
-    name: {
+    fullName: {
       type: String,
-      required: [true, 'Please provide a name'],
+      required: [true, 'Please provide your full name'],
       trim: true,
-      maxlength: [50, 'Name cannot be more than 50 characters']
+      maxlength: [100, 'Name cannot be more than 100 characters']
     },
     email: {
       type: String,
@@ -22,15 +22,18 @@ const userSchema = new mongoose.Schema(
         'Please provide a valid email'
       ]
     },
+    studentId: {
+      type: String,
+      required: [true, 'Please provide your student ID'],
+      unique: true,
+      trim: true,
+      uppercase: true
+    },
     password: {
       type: String,
       required: [true, 'Please provide a password'],
       minlength: [6, 'Password must be at least 6 characters'],
       select: false // Don't return password by default
-    },
-    phone: {
-      type: String,
-      trim: true
     },
     avatar: {
       type: String,
