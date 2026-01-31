@@ -36,6 +36,19 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null
     },
+    university: {
+      type: String,
+      trim: true
+    },
+    department: {
+      type: String,
+      trim: true
+    },
+    level: {
+      type: String,
+      enum: ['100', '200', '300', '400', '500', '600', 'Postgraduate', ''],
+      default: ''
+    },
     isEmailVerified: {
       type: Boolean,
       default: false
