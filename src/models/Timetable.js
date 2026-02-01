@@ -1,50 +1,42 @@
 const mongoose = require('mongoose');
 
-const scheduleItemSchema = new mongoose.Schema({
-  day: {
+const timetableClassSchema = new mongoose.Schema({
+  courseCode: {
     type: String,
     required: true,
-    enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    trim: true,
+    uppercase: true
   },
-  time: {
+  courseName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  startTime: {
     type: String,
     required: true
   },
   endTime: {
-    type: String
-  },
-  course: {
     type: String,
-    required: true,
-    trim: true
+    required: true
   },
-  courseCode: {
-    type: String,
-    trim: true,
-    uppercase: true
-  },
-  venue: {
+  location: {
     type: String,
     trim: true,
     default: 'TBA'
   },
-  lecturer: {
+  professor: {
     type: String,
     trim: true,
     default: 'TBA'
   },
-  type: {
+  iconName: {
     type: String,
-    enum: ['lecture', 'tutorial', 'lab', 'seminar', 'exam', 'other'],
-    default: 'lecture'
+    default: 'book'
   },
-  color: {
+  accentColor: {
     type: String,
-    default: '#4A90A4'
-  },
-  notes: {
-    type: String,
-    trim: true
+    default: 'primary'
   }
 });
 
@@ -65,7 +57,16 @@ const timetableSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
-    schedule: [scheduleItemSchema],
+    // Schedule organized by day index: 0=Sunday, 1=Monday, 2=Tuesday, etc.
+    schedule: {
+      0: [timetableClassSchema], // Sunday
+      1: [timetableClassSchema], // Monday
+      2: [timetableClassSchema], // Tuesday
+      3: [timetableClassSchema], // Wednesday
+      4: [timetableClassSchema], // Thursday
+      5: [timetableClassSchema], // Friday
+      6: [timetableClassSchema]  // Saturday
+    },
     isActive: {
       type: Boolean,
       default: true
