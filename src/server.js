@@ -1,10 +1,15 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const swaggerUi = require('swagger-ui-express');
 const config = require('./config');
 const connectDB = require('./config/database');
 const routes = require('./routes');
 const { errorHandler, notFound } = require('./middleware');
+const swaggerSpec = require('./config/swagger');
+
+// Load API documentation
+require('./docs');
 
 // Initialize express app
 const app = express();
@@ -33,6 +38,26 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Swagger UI - API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Campus App API Documentation',
+  swaggerOptions: {
+    persistAuthorization: true,
+    docExpansion: 'none',
+    filter: true,
+    tagsSorter: 'alpha',
+    operationsSorter: 'alpha'
+  }
+}));
+
+// Serve swagger.json
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
 // Request logging in development
 if (config.nodeEnv === 'development') {
   app.use((req, res, next) => {
@@ -50,7 +75,8 @@ app.get('/', (req, res) => {
     success: true,
     message: 'Welcome to the Mobile App API',
     version: '1.0.0',
-    documentation: '/api/health'
+    documentation: '/api-docs',
+    health: '/api/health'
   });
 });
 
@@ -70,6 +96,7 @@ const server = app.listen(PORT, () => {
 ║   🚀 Server running in ${config.nodeEnv.padEnd(11)} mode                  ║
 ║   📡 Port: ${String(PORT).padEnd(47)}║
 ║   🔗 URL: http://localhost:${String(PORT).padEnd(30)}║
+║   📚 Docs: http://localhost:${String(PORT).padEnd(13)}/api-docs             ║
 ║                                                            ║
 ╚════════════════════════════════════════════════════════════╝
   `);

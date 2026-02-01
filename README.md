@@ -14,6 +14,20 @@ A comprehensive Node.js/Express backend API for a campus mobile application feat
 - **Task/Planner**: Task CRUD with priorities and categories
 - **Dashboard Analytics**: Study streaks, stats, and insights
 - **Notifications**: In-app notification system
+- **API Documentation**: Swagger UI for API testing
+
+## 📚 API Documentation
+
+Once the server is running, access the interactive API documentation at:
+
+- **Swagger UI**: `http://localhost:5000/api-docs`
+- **OpenAPI JSON**: `http://localhost:5000/api-docs.json`
+
+The Swagger UI allows you to:
+- Browse all available endpoints
+- Test API calls directly from the browser
+- Authenticate with JWT tokens
+- View request/response schemas
 
 ## Project Structure
 
@@ -161,12 +175,13 @@ npm start
 ### Timetable (`/api/timetable`)
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
-| GET | `/api/timetable` | Get timetable | Yes |
-| PUT | `/api/timetable` | Update timetable | Yes |
-| GET | `/api/timetable/today` | Get today's schedule | Yes |
-| POST | `/api/timetable/item` | Add schedule item | Yes |
-| PUT | `/api/timetable/item/:itemId` | Update item | Yes |
-| DELETE | `/api/timetable/item/:itemId` | Delete item | Yes |
+| GET | `/api/timetable` | Get full timetable | Yes |
+| PUT | `/api/timetable` | Replace entire timetable | Yes |
+| GET | `/api/timetable/today` | Get today's classes | Yes |
+| GET | `/api/timetable/day/:dayIndex` | Get classes for specific day (0-6) | Yes |
+| POST | `/api/timetable/class` | Add a class | Yes |
+| PUT | `/api/timetable/class/:dayIndex/:classIndex` | Update a class | Yes |
+| DELETE | `/api/timetable/class/:dayIndex/:classIndex` | Delete a class | Yes |
 
 ### Tasks (`/api/tasks`)
 | Method | Endpoint | Description | Auth Required |
@@ -211,10 +226,10 @@ POST /api/auth/signup
 Content-Type: application/json
 
 {
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "password123",
-  "phone": "+1234567890"
+  "fullName": "John Doe",
+  "email": "john@university.edu",
+  "studentId": "STU2024001",
+  "password": "password123"
 }
 ```
 
@@ -226,9 +241,9 @@ Content-Type: application/json
   "data": {
     "user": {
       "_id": "...",
-      "name": "John Doe",
-      "email": "john@example.com",
-      "phone": "+1234567890",
+      "fullName": "John Doe",
+      "email": "john@university.edu",
+      "studentId": "STU2024001",
       "isEmailVerified": false,
       "isActive": true,
       "createdAt": "...",
@@ -287,16 +302,18 @@ class AuthService {
   // For iOS simulator use: http://localhost:5000/api
   
   Future<Map<String, dynamic>> signup({
-    required String name,
+    required String fullName,
     required String email,
+    required String studentId,
     required String password,
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/auth/signup'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'name': name,
+        'fullName': fullName,
         'email': email,
+        'studentId': studentId,
         'password': password,
       }),
     );
@@ -397,7 +414,7 @@ class AuthService {
 | `MONGODB_URI` | MongoDB connection string | Required |
 | `JWT_SECRET` | Secret for JWT tokens | Required |
 | `JWT_EXPIRE` | JWT expiration time | `30d` |
-| `CLIENT_URL` | Frontend URL for CORS | `http://localhost:3000` |
+| `CLIENT_URL` | Frontend URL for CORS | `http://localhost:8080` |
 
 ## License
 
