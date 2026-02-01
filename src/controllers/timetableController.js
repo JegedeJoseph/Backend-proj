@@ -1,14 +1,17 @@
 const Timetable = require('../models/Timetable');
 
+// Valid day names
+const VALID_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
 // Helper to create empty schedule structure
 const createEmptySchedule = () => ({
-  0: [], // Sunday
-  1: [], // Monday
-  2: [], // Tuesday
-  3: [], // Wednesday
-  4: [], // Thursday
-  5: [], // Friday
-  6: []  // Saturday
+  Sunday: [],
+  Monday: [],
+  Tuesday: [],
+  Wednesday: [],
+  Thursday: [],
+  Friday: [],
+  Saturday: []
 });
 
 /**
@@ -97,17 +100,17 @@ const updateTimetable = async (req, res) => {
  */
 const addClass = async (req, res) => {
   try {
-    const { dayIndex, classData } = req.body;
+    const { day, classData } = req.body;
 
     // Support both nested classData and flat structure
     const data = classData || req.body;
     const { courseCode, courseName, startTime, endTime, location, professor, iconName, accentColor } = data;
 
-    // Validate dayIndex (0-6)
-    if (dayIndex === undefined || dayIndex < 0 || dayIndex > 6) {
+    // Validate day name
+    if (!day || !VALID_DAYS.includes(day)) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide a valid day index (0-6, where 0=Sunday)'
+        message: 'Please provide a valid day name (Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday)'
       });
     }
 
@@ -139,10 +142,10 @@ const addClass = async (req, res) => {
     };
 
     // Add class to the specific day
-    if (!timetable.schedule[dayIndex]) {
-      timetable.schedule[dayIndex] = [];
+    if (!timetable.schedule[day]) {
+      timetable.schedule[day] = [];
     }
-    timetable.schedule[dayIndex].push(newClass);
+    timetable.schedule[day].push(newClass);
     timetable.markModified('schedule');
     await timetable.save();
 
@@ -150,8 +153,8 @@ const addClass = async (req, res) => {
       success: true,
       message: 'Class added successfully',
       data: {
-        dayIndex,
-        class: timetable.schedule[dayIndex][timetable.schedule[dayIndex].length - 1]
+        day,
+        class: timetable.schedule[day][timetable.schedule[day].length - 1]
       }
     });
   } catch (error) {
@@ -166,13 +169,20 @@ const addClass = async (req, res) => {
 
 /**
  * @desc    Update a class in the timetable
- * @route   PUT /api/timetable/class/:dayIndex/:classIndex
+ * @route   PUT /api/timetable/class/:day/:classIndex
  * @access  Private
  */
 const updateClass = async (req, res) => {
   try {
-    const { dayIndex, classIndex } = req.params;
+    const { day, classIndex } = req.params;
     const updates = req.body;
+
+    if (!VALID_DAYS.includes(day)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid day name. Use Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, or Saturday'
+      });
+    }
 
     const timetable = await Timetable.findOne({ user: req.user.id });
 
@@ -183,7 +193,7 @@ const updateClass = async (req, res) => {
       });
     }
 
-    if (!timetable.schedule[dayIndex] || !timetable.schedule[dayIndex][classIndex]) {
+    if (!timetable.schedule[day] || !timetable.schedule[day][classIndex]) {
       return res.status(404).json({
         success: false,
         message: 'Class not found'
@@ -191,7 +201,7 @@ const updateClass = async (req, res) => {
     }
 
     // Update fields
-    const classItem = timetable.schedule[dayIndex][classIndex];
+    const classItem = timetable.schedule[day][classIndex];
     if (updates.courseCode) classItem.courseCode = updates.courseCode.toUpperCase();
     if (updates.courseName) classItem.courseName = updates.courseName;
     if (updates.startTime) classItem.startTime = updates.startTime;
@@ -207,7 +217,7 @@ const updateClass = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Class updated successfully',
-      data: timetable.schedule[dayIndex][classIndex]
+      data: timetable.schedule[day][classIndex]
     });
   } catch (error) {
     console.error('Update class error:', error);
@@ -221,12 +231,19 @@ const updateClass = async (req, res) => {
 
 /**
  * @desc    Delete a class from the timetable
- * @route   DELETE /api/timetable/class/:dayIndex/:classIndex
+ * @route   DELETE /api/timetable/class/:day/:classIndex
  * @access  Private
  */
 const deleteClass = async (req, res) => {
   try {
-    const { dayIndex, classIndex } = req.params;
+    const { day, classIndex } = req.params;
+
+    if (!VALID_DAYS.includes(day)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid day name. Use Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, or Saturday'
+      });
+    }
 
     const timetable = await Timetable.findOne({ user: req.user.id });
 
@@ -237,7 +254,7 @@ const deleteClass = async (req, res) => {
       });
     }
 
-    if (!timetable.schedule[dayIndex] || !timetable.schedule[dayIndex][classIndex]) {
+    if (!timetable.schedule[day] || !timetable.schedule[day][classIndex]) {
       return res.status(404).json({
         success: false,
         message: 'Class not found'
@@ -245,7 +262,7 @@ const deleteClass = async (req, res) => {
     }
 
     // Remove the class
-    timetable.schedule[dayIndex].splice(classIndex, 1);
+    timetable.schedule[day].splice(classIndex, 1);
     timetable.markModified('schedule');
     await timetable.save();
 
@@ -271,31 +288,29 @@ const deleteClass = async (req, res) => {
 const getTodaySchedule = async (req, res) => {
   try {
     const dayIndex = new Date().getDay(); // 0=Sunday, 1=Monday, etc.
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const day = VALID_DAYS[dayIndex];
 
     const timetable = await Timetable.findOne({ user: req.user.id });
 
-    if (!timetable || !timetable.schedule[dayIndex]) {
+    if (!timetable || !timetable.schedule[day]) {
       return res.status(200).json({
         success: true,
         data: {
-          dayIndex,
-          dayName: dayNames[dayIndex],
+          day,
           classes: []
         }
       });
     }
 
     // Sort classes by start time
-    const todayClasses = [...timetable.schedule[dayIndex]].sort((a, b) => {
+    const todayClasses = [...timetable.schedule[day]].sort((a, b) => {
       return a.startTime.localeCompare(b.startTime);
     });
 
     res.status(200).json({
       success: true,
       data: {
-        dayIndex,
-        dayName: dayNames[dayIndex],
+        day,
         classes: todayClasses
       }
     });
@@ -311,44 +326,41 @@ const getTodaySchedule = async (req, res) => {
 
 /**
  * @desc    Get schedule for a specific day
- * @route   GET /api/timetable/day/:dayIndex
+ * @route   GET /api/timetable/day/:day
  * @access  Private
  */
 const getDaySchedule = async (req, res) => {
   try {
-    const { dayIndex } = req.params;
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const { day } = req.params;
 
-    if (dayIndex < 0 || dayIndex > 6) {
+    if (!VALID_DAYS.includes(day)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid day index. Use 0-6 (0=Sunday)'
+        message: 'Invalid day name. Use Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, or Saturday'
       });
     }
 
     const timetable = await Timetable.findOne({ user: req.user.id });
 
-    if (!timetable || !timetable.schedule[dayIndex]) {
+    if (!timetable || !timetable.schedule[day]) {
       return res.status(200).json({
         success: true,
         data: {
-          dayIndex: parseInt(dayIndex),
-          dayName: dayNames[dayIndex],
+          day,
           classes: []
         }
       });
     }
 
     // Sort classes by start time
-    const dayClasses = [...timetable.schedule[dayIndex]].sort((a, b) => {
+    const dayClasses = [...timetable.schedule[day]].sort((a, b) => {
       return a.startTime.localeCompare(b.startTime);
     });
 
     res.status(200).json({
       success: true,
       data: {
-        dayIndex: parseInt(dayIndex),
-        dayName: dayNames[dayIndex],
+        day,
         classes: dayClasses
       }
     });

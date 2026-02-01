@@ -57,15 +57,15 @@ const timetableSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
-    // Schedule organized by day index: 0=Sunday, 1=Monday, 2=Tuesday, etc.
+    // Schedule organized by day name
     schedule: {
-      0: [timetableClassSchema], // Sunday
-      1: [timetableClassSchema], // Monday
-      2: [timetableClassSchema], // Tuesday
-      3: [timetableClassSchema], // Wednesday
-      4: [timetableClassSchema], // Thursday
-      5: [timetableClassSchema], // Friday
-      6: [timetableClassSchema]  // Saturday
+      Sunday: [timetableClassSchema],
+      Monday: [timetableClassSchema],
+      Tuesday: [timetableClassSchema],
+      Wednesday: [timetableClassSchema],
+      Thursday: [timetableClassSchema],
+      Friday: [timetableClassSchema],
+      Saturday: [timetableClassSchema]
     },
     isActive: {
       type: Boolean,
