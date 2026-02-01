@@ -97,7 +97,11 @@ const updateTimetable = async (req, res) => {
  */
 const addClass = async (req, res) => {
   try {
-    const { dayIndex, courseCode, courseName, startTime, endTime, location, professor, iconName, accentColor } = req.body;
+    const { dayIndex, classData } = req.body;
+
+    // Support both nested classData and flat structure
+    const data = classData || req.body;
+    const { courseCode, courseName, startTime, endTime, location, professor, iconName, accentColor } = data;
 
     // Validate dayIndex (0-6)
     if (dayIndex === undefined || dayIndex < 0 || dayIndex > 6) {
